@@ -1,0 +1,27 @@
+{
+  "src/": {
+    "components/": {
+      "Layout/": ["Sidebar.tsx", "Header.tsx", "Layout.tsx"],
+      "UI/": ["Modal.tsx", "Button.tsx", "Card.tsx", "Input.tsx"],
+      "OC/": ["OCCard.tsx", "OCGrid.tsx", "OCForm.tsx", "FeatureCard.tsx"]
+    },
+    "pages/": [
+      "Dashboard.tsx",
+      "OCManagement.tsx", 
+      "OCDetails.tsx",
+      "OCEdit.tsx",
+      "Features.tsx",
+      "Settings.tsx",
+      "Login.tsx"
+    ],
+    "styles/": [
+      "globals.css",
+      "components.css",
+      "pages.css"
+    ],
+    "hooks/": ["useOC.ts", "useAuth.ts"],
+    "types/": ["oc.ts", "user.ts"],
+    "utils/": ["supabase.ts", "helpers.ts"],
+    "data/": ["mockData.ts"]
+  }
+}
