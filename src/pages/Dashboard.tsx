@@ -1,348 +1,209 @@
-import React, { useState } from 'react';
-import Modal from '../components/Modal';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { mockOCs, mockUser } from '../data/mockData';
+import Card from '../components/UI/Card';
+import Button from '../components/UI/Button';
+import Header from '../components/Layout/Header';
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  avatar: string;
-  role: string;
-}
-
-interface OC {
-  id: number;
-  name: string;
-  image: string;
-  category: string;
-  status: 'active' | 'draft';
-  createdAt: string;
-  description: string;
-  features: any[];
-}
-
-interface DashboardProps {
-  user: User;
-  ocs: OC[];
-  onNavigate: (page: string, ocId?: number) => void;
-  onUpdateOC: (ocId: number, updates: Partial<OC>) => void;
-  onDeleteOC: (ocId: number) => void;
-  onAddOC: (newOC: Omit<OC, 'id'>) => void;
-}
-
-const Dashboard: React.FC<DashboardProps> = ({ 
-  user, 
-  ocs, 
-  onNavigate, 
-  onUpdateOC, 
-  onDeleteOC,
-  onAddOC 
-}) => {
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedOC, setSelectedOC] = useState<OC | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [formData, setFormData] = useState({
-    name: '',
-    category: '',
-    description: '',
-    image: '',
-    status: 'active' as 'active' | 'draft'
-  });
-
-  const filteredOCs = ocs.filter(oc => {
-    const matchesSearch = oc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         oc.category.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || oc.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
-
-  const handleAddOC = () => {
-    if (!formData.name.trim()) return;
-
-    const newOC = {
-      name: formData.name,
-      category: formData.category || 'General',
-      description: formData.description,
-      image: formData.image || `https://picsum.photos/400/500?random=${Date.now()}`,
-      status: formData.status,
-      createdAt: new Date().toISOString().split('T')[0],
-      features: []
-    };
-
-    onAddOC(newOC);
-    setShowAddModal(false);
-    resetForm();
-  };
-
-  const handleDeleteOC = () => {
-    if (selectedOC) {
-      onDeleteOC(selectedOC.id);
-      setShowDeleteModal(false);
-      setSelectedOC(null);
+export const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+  
+  const stats = [
+    {
+      title: 'Tổng số OC',
+      value: mockOCs.length,
+      icon: '👤',
+      color: 'bg-blue-500',
+      change: '+2 tháng này'
+    },
+    {
+      title: 'OC hoạt động',
+      value: mockOCs.filter(oc => oc.status === 'active').length,
+      icon: '✨',
+      color: 'bg-green-500',
+      change: '100% active'
+    },
+    {
+      title: 'Lượt xem',
+      value: '1,234',
+      icon: '👁',
+      color: 'bg-purple-500',
+      change: '+18% so với tháng trước'
+    },
+    {
+      title: 'Features',
+      value: '47',
+      icon: '🧩',
+      color: 'bg-orange-500',
+      change: '+5 tuần này'
     }
-  };
+  ];
 
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      category: '',
-      description: '',
-      image: '',
-      status: 'active'
-    });
-  };
-
-  const openDeleteModal = (oc: OC, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedOC(oc);
-    setShowDeleteModal(true);
-  };
-
-  const getStatusBadgeClass = (status: string) => {
-    return status === 'active' ? 'status-active' : 'status-draft';
-  };
+  const recentActivity = [
+    {
+      id: 1,
+      type: 'create',
+      message: 'Tạo nhân vật mới "Luna"',
+      time: '2 giờ trước',
+      icon: '➕',
+      color: 'text-green-600'
+    },
+    {
+      id: 2,
+      type: 'edit',
+      message: 'Cập nhật thông tin "Troy"',
+      time: '4 giờ trước',
+      icon: '✏️',
+      color: 'text-blue-600'
+    },
+    {
+      id: 3,
+      type: 'feature',
+      message: 'Thêm feature mới cho "Yuri"',
+      time: '1 ngày trước',
+      icon: '🧩',
+      color: 'text-purple-600'
+    },
+    {
+      id: 4,
+      type: 'view',
+      message: 'Profile "Troy" được xem 50 lần',
+      time: '2 ngày trước',
+      icon: '👁',
+      color: 'text-gray-600'
+    }
+  ];
 
   return (
-    <>
-      {/* Welcome Section */}
-      <section className="welcome-section">
-        <div className="welcome-content">
-          <h2 className="welcome-title">Chào mừng trở lại, {user.name}! 👋</h2>
-          <p className="welcome-subtitle">Quản lý và phát triển các nhân vật OC của bạn tại đây.</p>
-          <div className="quick-actions">
-            <button 
-              className="btn-primary"
-              onClick={() => setShowAddModal(true)}
-            >
-              <i className="fas fa-plus"></i>
-              Thêm OC mới
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Search and Filter */}
-      <div className="search-filter-section">
-        <div className="search-bar">
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Tìm kiếm OC..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <select
-            className="filter-select"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+    <div className="min-h-screen bg-gray-50">
+      <Header
+        title="Dashboard"
+        subtitle="Chào mừng trở lại! Đây là tổng quan về OC của bạn."
+        user={mockUser}
+        actions={
+          <Button 
+            onClick={() => navigate('/ocs/new')}
+            icon={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            }
           >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="active">Đang hoạt động</option>
-            <option value="draft">Nháp</option>
-          </select>
-        </div>
-      </div>
+            Tạo OC mới
+          </Button>
+        }
+      />
 
-      {/* Stats Cards */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#3b82f6' }}>
-            <i className="fas fa-users"></i>
-          </div>
-          <div className="stat-content">
-            <div className="stat-number">{ocs.length}</div>
-            <div className="stat-label">Tổng số OC</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#10b981' }}>
-            <i className="fas fa-check-circle"></i>
-          </div>
-          <div className="stat-content">
-            <div className="stat-number">{ocs.filter(oc => oc.status === 'active').length}</div>
-            <div className="stat-label">OC hoàn thành</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#f59e0b' }}>
-            <i className="fas fa-edit"></i>
-          </div>
-          <div className="stat-content">
-            <div className="stat-number">{ocs.filter(oc => oc.status === 'draft').length}</div>
-            <div className="stat-label">OC đang tạo</div>
-          </div>
-        </div>
-      </div>
-
-      {/* OC Grid */}
-      <section className="oc-section">
-        <h2>Danh sách OC của bạn</h2>
-        {filteredOCs.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">
-              <i className="fas fa-user-plus"></i>
-            </div>
-            <h3>Chưa có OC nào</h3>
-            <p>Hãy tạo OC đầu tiên của bạn!</p>
-            <button 
-              className="btn-primary"
-              onClick={() => setShowAddModal(true)}
-            >
-              <i className="fas fa-plus"></i>
-              Tạo OC mới
-            </button>
-          </div>
-        ) : (
-          <div className="oc-grid">
-            {filteredOCs.map((oc) => (
-              <div
-                key={oc.id}
-                className="oc-card"
-                onClick={() => onNavigate('oc-details', oc.id)}
+      <div className="p-6 space-y-6">
+        {/* Welcome Section */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
+          <div className="max-w-2xl">
+            <h2 className="text-3xl font-bold mb-3">Chào mừng trở lại, {mockUser.name}! 👋</h2>
+            <p className="text-lg opacity-90 mb-6">
+              Hôm nay là ngày tuyệt vời để phát triển thêm các nhân vật của bạn.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => navigate('/ocs')}
               >
-                <div className="oc-card-image-container">
-                  <img src={oc.image} alt={oc.name} className="oc-card-image" />
-                  <div className="oc-card-actions">
-                    <button
-                      className="action-btn delete-btn"
-                      onClick={(e) => openDeleteModal(oc, e)}
-                      title="Xóa OC"
-                    >
-                      <i className="fas fa-trash"></i>
-                    </button>
-                  </div>
+                Xem tất cả OC
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/features')}
+                className="text-white border-white/20 hover:bg-white/10"
+              >
+                Quản lý Features
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {stats.map((stat, index) => (
+            <Card key={index} className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
+                  <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-sm text-green-600 mt-2">{stat.change}</p>
                 </div>
-                <div className="oc-card-content">
-                  <div className="oc-card-header">
-                    <h3 className="oc-card-name">{oc.name}</h3>
-                    <span className={`status-badge ${getStatusBadgeClass(oc.status)}`}>
-                      {oc.status === 'active' ? 'Hoàn thành' : 'Nháp'}
-                    </span>
-                  </div>
-                  <div className="oc-card-category">{oc.category}</div>
-                  <p className="oc-card-description">{oc.description}</p>
-                  <div className="oc-card-meta">
-                    <span>Tạo: {new Date(oc.createdAt).toLocaleDateString('vi-VN')}</span>
-                    <span>{oc.features.length} tính năng</span>
-                  </div>
+                <div className={`w-12 h-12 rounded-xl ${stat.color} flex items-center justify-center text-white text-xl`}>
+                  {stat.icon}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+            </Card>
+          ))}
+        </div>
 
-      {/* Add OC Modal */}
-      {showAddModal && (
-        <Modal
-          title="Thêm OC mới"
-          onClose={() => {
-            setShowAddModal(false);
-            resetForm();
-          }}
-        >
-          <form onSubmit={(e) => { e.preventDefault(); handleAddOC(); }}>
-            <div className="form-group">
-              <label className="form-label">Tên OC *</label>
-              <input
-                type="text"
-                className="form-input"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                placeholder="Nhập tên nhân vật"
-                required
-              />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent OCs */}
+          <Card>
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">OC gần đây</h3>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/ocs')}>
+                  Xem tất cả
+                </Button>
+              </div>
             </div>
-
-            <div className="form-group">
-              <label className="form-label">Danh mục</label>
-              <input
-                type="text"
-                className="form-input"
-                value={formData.category}
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
-                placeholder="VD: Anime Character, Fantasy Character..."
-              />
+            <div className="p-6 space-y-4">
+              {mockOCs.slice(0, 3).map((oc) => (
+                <div
+                  key={oc.id}
+                  className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => navigate(`/ocs/${oc.id}`)}
+                >
+                  <img
+                    src={oc.avatar_url}
+                    alt={oc.name}
+                    className="w-12 h-12 rounded-lg object-cover"
+                  />
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">{oc.name}</h4>
+                    <p className="text-sm text-gray-500">{oc.age} tuổi • {oc.gender}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className={`badge ${
+                      oc.status === 'active' ? 'badge-success' : 
+                      oc.status === 'draft' ? 'badge-warning' : 'badge-gray'
+                    }`}>
+                      {oc.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
+          </Card>
 
-            <div className="form-group">
-              <label className="form-label">Mô tả</label>
-              <textarea
-                className="form-textarea"
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Mô tả ngắn về nhân vật"
-                rows={3}
-              />
+          {/* Recent Activity */}
+          <Card>
+            <div className="p-6 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Hoạt động gần đây</h3>
             </div>
-
-            <div className="form-group">
-              <label className="form-label">URL ảnh</label>
-              <input
-                type="url"
-                className="form-input"
-                value={formData.image}
-                onChange={(e) => setFormData({...formData, image: e.target.value})}
-                placeholder="https://example.com/image.jpg"
-              />
+            <div className="p-6 space-y-4 max-h-80 overflow-y-auto">
+              {recentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-start gap-4">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
+                    activity.type === 'create' ? 'bg-green-100' :
+                    activity.type === 'edit' ? 'bg-blue-100' :
+                    activity.type === 'feature' ? 'bg-purple-100' : 'bg-gray-100'
+                  }`}>
+                    {activity.icon}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-900">{activity.message}</p>
+                    <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            <div className="form-group">
-              <label className="form-label">Trạng thái</label>
-              <select
-                className="form-select"
-                value={formData.status}
-                onChange={(e) => setFormData({...formData, status: e.target.value as 'active' | 'draft'})}
-              >
-                <option value="draft">Nháp</option>
-                <option value="active">Hoàn thành</option>
-              </select>
-            </div>
-
-            <div className="modal-actions">
-              <button type="button" className="btn-cancel" onClick={() => setShowAddModal(false)}>
-                Hủy
-              </button>
-              <button type="submit" className="btn-primary">
-                <i className="fas fa-plus"></i>
-                Tạo OC
-              </button>
-            </div>
-          </form>
-        </Modal>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && selectedOC && (
-        <Modal
-          title="Xác nhận xóa"
-          onClose={() => {
-            setShowDeleteModal(false);
-            setSelectedOC(null);
-          }}
-        >
-          <p>Bạn có chắc chắn muốn xóa OC "{selectedOC.name}" không?</p>
-          <p className="warning-text">Hành động này không thể hoàn tác.</p>
-          
-          <div className="modal-actions">
-            <button 
-              className="btn-cancel" 
-              onClick={() => setShowDeleteModal(false)}
-            >
-              Hủy
-            </button>
-            <button 
-              className="btn-danger" 
-              onClick={handleDeleteOC}
-            >
-              <i className="fas fa-trash"></i>
-              Xóa
-            </button>
-          </div>
-        </Modal>
-      )}
-    </>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 };
 
