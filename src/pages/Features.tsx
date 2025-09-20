@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { mockFeatures, mockOCs, mockUser } from '../data/mockData';
-import { OCFeature } from '../types/oc';
+import { OCFeature, OC } from '../types/oc'; // Import OC type
 import Header from '../components/Layout/Header';
 import FeatureCard from '../components/OC/FeatureCard';
 import Button from '../components/UI/Button';
@@ -55,13 +55,15 @@ export const Features: React.FC = () => {
     { value: 'inactive', label: 'Không hoạt động' }
   ];
 
+  // Fix: Add explicit type annotation for oc parameter
   const ocOptions = [
     { value: '', label: 'Tất cả OC' },
-    ...mockOCs.map(oc => ({ value: oc.id, label: oc.name }))
+    ...mockOCs.map((oc: OC) => ({ value: oc.id, label: oc.name }))
   ];
 
+  // Fix: Add explicit type annotation for oc parameter
   const getOCName = (ocId: string) => {
-    return mockOCs.find(oc => oc.id === ocId)?.name || 'Unknown';
+    return mockOCs.find((oc: OC) => oc.id === ocId)?.name || 'Unknown';
   };
 
   return (

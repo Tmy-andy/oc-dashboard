@@ -18,6 +18,10 @@ export default {
         'fade-in': 'fadeIn 0.2s ease-in-out',
         'slide-up': 'slideUp 0.25s ease',
       },
+      boxShadow: {
+        soft: "0 2px 6px rgba(0,0,0,0.08)",
+        medium: "0 4px 12px rgba(0,0,0,0.12)",
+      },
       keyframes: {
         fadeIn: {
           'from': { opacity: '0' },
@@ -32,3 +36,4 @@ export default {
   },
   plugins: [],
 }
+
